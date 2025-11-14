@@ -1,0 +1,11 @@
+services:
+    nextapp:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: next-whisper
+        ports:
+            - '3000:3000'
+        environment:
+            NODE_ENV: production
+        restart: unless-stopped

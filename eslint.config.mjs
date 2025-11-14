@@ -12,9 +12,7 @@ const eslintConfig = defineConfig([
         plugins: {
             prettier: eslintPluginPrettier,
         },
-        rules: {
-            'prettier/prettier': 'warn',
-        },
+        rules: {},
     },
     globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
 ])

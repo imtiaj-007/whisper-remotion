@@ -1,0 +1,21 @@
+services:
+    nextapp:
+        build:
+            context: .
+            dockerfile: Dockerfile.dev
+        container_name: next-whisper-dev
+        ports:
+            - '3000:3000'
+        environment:
+            NODE_ENV: development
+            WATCHPACK_POLLING: 'true'
+        volumes:
+            # Mount source code for hot-reloading
+            - .:/app
+            # Exclude node_modules and .next to use container's versions
+            - /app/node_modules
+            - /app/.next
+            - /app/models
+        restart: unless-stopped
+        stdin_open: true
+        tty: true

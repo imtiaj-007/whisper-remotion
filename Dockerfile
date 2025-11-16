@@ -78,8 +78,8 @@ RUN chmod +x /usr/local/bin/whisper-cli
 
 # Download whisper model
 RUN mkdir -p /app/models && \
-    curl -L -o /app/models/ggml-small.bin \
-    https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
+    curl -L -o /app/models/ggml-base.bin \
+    https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 
 # Copy necessary files from builder
 COPY --from=builder /app/public ./public

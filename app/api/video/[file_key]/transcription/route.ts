@@ -3,15 +3,6 @@ import { runWhisper } from '@/utils/whisper'
 import { randomUUID } from 'crypto'
 import { NextResponse } from 'next/server'
 
-interface TranscriptionResponse {
-    transcript: unknown
-    transcriptKey: string
-}
-
-interface TranscriptionRequest {
-    audioPath: string
-}
-
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ file_key: string }> }

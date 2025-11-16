@@ -43,8 +43,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set build-time environment variables
-ENV NEXT_TELEMETRY_DISABLED=1
+# Set build-time environment variables (dummy values for build time validation)
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    AWS_ACCESS_KEY_ID=dummy-build-key \
+    AWS_SECRET_ACCESS_KEY=dummy-build-secret
 
 # Build Next.js application
 RUN npm run build

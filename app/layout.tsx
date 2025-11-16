@@ -1,3 +1,4 @@
+import { Toaster } from '@/components/ui/sonner'
 import type { Metadata } from 'next'
 import { Noto_Sans, Noto_Sans_Devanagari } from 'next/font/google'
 import './globals.css'
@@ -27,7 +28,8 @@ export default function RootLayout({
             lang='en'
             className='dark'>
             <body className={`${notoSans.variable} ${notoSansDevanagari.variable} antialiased`}>
-                {children}
+                <main className='h-screen w-screen flex flex-col'>{children}</main>
+                <Toaster />
             </body>
         </html>
     )

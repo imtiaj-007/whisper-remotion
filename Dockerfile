@@ -89,7 +89,11 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
 # Expose port
-EXPOSE 10000
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
+  CMD curl -f http://127.0.0.1:3000/api/health || exit 1
 
 # Start application
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

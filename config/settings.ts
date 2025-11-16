@@ -20,10 +20,12 @@ export const settings: TAppVariables = {
 
 const requiredVariables: string[] = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
 
-// Validate that all required environment variables are present
-requiredVariables.forEach(key => {
-    if (!settings[key as keyof TAppVariables]) {
-        console.error(`Missing required environment variable: ${key}`)
-        process.exit(1)
-    }
-})
+// Validate that all required environment variables are present (skip during build time)
+if (typeof window !== 'undefined') {
+    requiredVariables.forEach(key => {
+        if (!settings[key as keyof TAppVariables]) {
+            console.error(`Missing required environment variable: ${key}`)
+            process.exit(1)
+        }
+    })
+}

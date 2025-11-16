@@ -44,9 +44,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Set build-time environment variables (dummy values for build time validation)
-ENV NEXT_TELEMETRY_DISABLED=1 \
-    AWS_ACCESS_KEY_ID=dummy-build-key \
-    AWS_SECRET_ACCESS_KEY=dummy-build-secret
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build Next.js application
 RUN npm run build
@@ -80,8 +78,8 @@ RUN chmod +x /usr/local/bin/whisper-cli
 
 # Download whisper model
 RUN mkdir -p /app/models && \
-    curl -L -o /app/models/ggml-base.bin \
-    https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+    curl -L -o /app/models/ggml-small.bin \
+    https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
 
 # Copy necessary files from builder
 COPY --from=builder /app/public ./public

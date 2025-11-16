@@ -1,8 +1,8 @@
-import { settings } from '@/config/settings'
+import { clientSettings } from '@/config/settings'
 import axios from 'axios'
 
 const axiosClient = axios.create({
-    baseURL: settings.API_BASE_URL || '/api',
+    baseURL: clientSettings.API_BASE_URL || '/api',
     headers: {
         'Content-Type': 'application/json',
     },

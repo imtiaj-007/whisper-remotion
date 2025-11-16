@@ -1,6 +1,5 @@
 'use client'
 
-import axiosClient from '@/lib/axios'
 import type { CaptionStyleConfig } from '@/types/caption-styles'
 import { CAPTION_STYLE_PRESETS } from '@/types/caption-styles'
 import { createContext, ReactNode, useContext, useState } from 'react'
@@ -52,6 +51,11 @@ export function VideoProvider({ children }: { children: ReactNode }) {
     const [captionStyle, setCaptionStyle] = useState<CaptionStyleConfig>(
         CAPTION_STYLE_PRESETS['bottom-centered']
     )
+
+    const getAxiosClient = async () => {
+        const { default: axiosClient } = await import('@/lib/axios')
+        return axiosClient
+    }
 
     const addVideo = async (file: File) => {
         try {
@@ -139,6 +143,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const getUploadUrl = async (): Promise<UploadUrlResponse | null> => {
         try {
+            const axiosClient = await getAxiosClient()
             const res = await axiosClient.get('/upload-url')
             return res.data
         } catch (err) {
@@ -149,6 +154,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
 
     const uploadFiletoS3 = async (presignedUrl: string, file: File): Promise<boolean> => {
         try {
+            const axiosClient = await getAxiosClient()
             await axiosClient.put(presignedUrl, file)
             return true
         } catch (err) {
@@ -162,6 +168,7 @@ export function VideoProvider({ children }: { children: ReactNode }) {
             setLoaders(prev => ({ ...prev, captioning: true }))
             if (!currentVideo || !currentVideo.id) return
 
+            const axiosClient = await getAxiosClient()
             const encodedFilekey = encodeURIComponent(currentVideo?.id)
             const audioRes = await axiosClient.post(`/video/${encodedFilekey}/audio`)
             if (!audioRes.data) throw new Error('Failed to extract audio')

@@ -1,4 +1,4 @@
-import { settings } from '@/config/settings'
+import { serverSettings } from '@/config/settings'
 import {
     GetObjectCommand,
     ListObjectsV2Command,
@@ -8,13 +8,13 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import fs from 'fs'
 
-export const BUCKET = settings.AWS_BUCKET_NAME
+export const BUCKET = serverSettings.AWS_BUCKET_NAME
 
 export const s3Instance = new S3Client({
-    region: settings.AWS_REGION,
+    region: serverSettings.AWS_REGION,
     credentials: {
-        accessKeyId: settings.AWS_ACCESS_KEY_ID,
-        secretAccessKey: settings.AWS_SECRET_ACCESS_KEY,
+        accessKeyId: serverSettings.AWS_ACCESS_KEY_ID,
+        secretAccessKey: serverSettings.AWS_SECRET_ACCESS_KEY,
     },
 })
 

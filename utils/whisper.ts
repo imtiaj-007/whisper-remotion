@@ -1,9 +1,9 @@
-import { settings } from '@/config/settings'
+import { serverSettings } from '@/config/settings'
 import { exec } from 'child_process'
 import fs from 'fs'
 
 export function runWhisper(audioPath: string, outputPath: string): Promise<WhisperResult> {
-    const modelPath = settings.MODEL_PATH
+    const modelPath = serverSettings.MODEL_PATH
 
     return new Promise<WhisperResult>((resolve, reject) => {
         try {

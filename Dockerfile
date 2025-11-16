@@ -1,94 +1,94 @@
-# # STAGE 1: Build whisper.cpp from source
-# FROM debian:bookworm-slim AS whisper-builder
+# STAGE 1: Build whisper.cpp from source on Alpine
+FROM alpine:3.19 AS whisper-builder
 
-# WORKDIR /whisper-build
+WORKDIR /whisper-build
 
-# RUN apt-get update && apt-get install -y --no-install-recommends \
-#     git \
-#     build-essential \
-#     cmake \
-#     ca-certificates \
-#     && rm -rf /var/lib/apt/lists/* \
-#     && update-ca-certificates
+RUN apk add --no-cache \
+    git \
+    build-base \
+    cmake \
+    ca-certificates
 
-# # Clone and build whisper.cpp
-# RUN git clone https://github.com/ggml-org/whisper.cpp.git . && \
-#     git checkout master
-# RUN cmake -B build
-# RUN cmake --build build --config Release
-
-# STAGE 1: Extract whisper.cpp binaries from official image
-FROM ghcr.io/ggml-org/whisper.cpp:main AS whisper
+# Clone and build whisper.cpp
+RUN git clone https://github.com/ggml-org/whisper.cpp.git . && \
+    git checkout master
+RUN cmake -B build
+RUN cmake --build build --config Release
 
 
 # STAGE 2: Build Next.js app
-FROM node:20-slim AS deps
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
 # Install required OS utils
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     python3 \
-    build-essential \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+    build-base \
+    ffmpeg
 
-COPY package.json package-lock.json ./
-
-RUN npm install --production=false
+# Install dependencies only when needed
+COPY package.json package-lock.json* ./
+RUN npm ci --only=production && \
+    cp -R node_modules /prod_node_modules && \
+    npm ci
 
 
 # STAGE 3: Build Next.js (App Router)
-FROM node:20-slim AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Set build-time environment variables
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build Next.js application
 RUN npm run build
 
 
 # STAGE 4: Production Runtime
-FROM node:20-slim AS runner
+FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-ENV NODE_ENV=production
+# Set production environment
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000
 
-# Install ffmpeg for audio conversion
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install runtime dependencies
+RUN apk add --no-cache \
     ffmpeg \
     curl \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    libstdc++ \
+    libgomp
 
 # Copy whisper binaries and libraries from builder
-COPY --from=whisper /app/build/bin/whisper-cli /usr/local/bin/whisper-cli
-COPY --from=whisper /app/build/src/libwhisper.so* /usr/local/lib/
-COPY --from=whisper /app/build/ggml/src/libggml*.so* /usr/local/lib/
+COPY --from=whisper-builder /whisper-build/build/bin/whisper-cli /usr/local/bin/whisper-cli
+COPY --from=whisper-builder /whisper-build/build/src/libwhisper.so* /usr/local/lib/
+COPY --from=whisper-builder /whisper-build/build/ggml/src/libggml*.so* /usr/local/lib/
 
-
-# Ensure loader can find libs
-RUN ldconfig
+# Set library path and permissions
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 RUN chmod +x /usr/local/bin/whisper-cli
 
-# Download whisper model if it doesn't exist
+# Download whisper model
 RUN mkdir -p /app/models && \
-    if [ ! -f /app/models/ggml-base.bin ]; then \
-        curl -L -o /app/models/ggml-base.bin \
-        https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin; \
-    fi
+    curl -L -o /app/models/ggml-base.bin \
+    https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 
-
-# Copy built Next.js app
+# Copy necessary files from builder
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
 # Expose port
 EXPOSE 3000
 
-CMD ["npm", "start"]
-    
+# Start application
+CMD ["node", "server.js"]

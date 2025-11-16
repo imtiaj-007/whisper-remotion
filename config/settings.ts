@@ -4,6 +4,8 @@ interface TAppVariables {
     AWS_SECRET_ACCESS_KEY: string
     AWS_BUCKET_NAME: string
     MODEL_PATH: string
+
+    API_BASE_URL: string
 }
 
 export const settings: TAppVariables = {
@@ -12,6 +14,8 @@ export const settings: TAppVariables = {
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY!,
     AWS_BUCKET_NAME: process.env.AWS_BUCKET_NAME || 'whisper-remotion',
     MODEL_PATH: process.env.MODEL_PATH || '/app/models/ggml-base.bin',
+
+    API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:3000/api',
 }
 
 const requiredVariables: string[] = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']

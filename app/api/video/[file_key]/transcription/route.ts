@@ -1,17 +1,7 @@
 import { uploadToS3 } from '@/lib/awsS3'
 import { runWhisper } from '@/utils/whisper'
 import { randomUUID } from 'crypto'
-import fs from 'fs'
 import { NextResponse } from 'next/server'
-
-interface TranscriptionResponse {
-    transcript: unknown
-    transcriptKey: string
-}
-
-interface TranscriptionRequest {
-    audioPath: string
-}
 
 export async function POST(
     request: Request,
@@ -24,13 +14,14 @@ export async function POST(
             return NextResponse.json({ error: 'audioPath is required' }, { status: 400 })
         }
 
-        const transcript = await runWhisper(audioPath)
+        const uniqueKey = randomUUID()
+        const transcriptKey = `transcripts/${uniqueKey}.json`
+        const tmpTranscriptPath = `/tmp/transcript-${uniqueKey}.json`
 
-        const transcriptKey = `transcripts/${randomUUID()}.json`
+        const transcript = await runWhisper(audioPath, tmpTranscriptPath)
         const transcriptContent = JSON.stringify(transcript, null, 2)
 
         await uploadToS3(transcriptKey, transcriptContent)
-        fs.writeFileSync(`/tmp/${transcriptKey}`, transcriptContent)
 
         return NextResponse.json({ transcript, transcriptKey })
     } catch (error) {

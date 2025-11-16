@@ -3,10 +3,6 @@ import { convertVideoToWav } from '@/utils/ffmpeg'
 import { randomUUID } from 'crypto'
 import { NextResponse } from 'next/server'
 
-interface AudioExtractionResponse {
-    audioPath: string
-}
-
 export async function POST(
     _: Request,
     { params }: { params: Promise<{ file_key: string }> }

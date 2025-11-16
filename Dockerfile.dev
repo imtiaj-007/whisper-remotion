@@ -1,53 +1,56 @@
-# STAGE 1: Build whisper.cpp from source
-FROM debian:bookworm-slim AS whisper-builder
+# STAGE 1: Build whisper.cpp from source on Alpine
+FROM alpine:3.19 AS whisper-builder
 
 WORKDIR /whisper-build
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     git \
-    build-essential \
+    build-base \
     cmake \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/* \
-    && update-ca-certificates
+    ca-certificates
 
 # Clone and build whisper.cpp
 RUN git clone https://github.com/ggml-org/whisper.cpp.git . && \
     git checkout master
-
 RUN cmake -B build
 RUN cmake --build build --config Release
 
 
-# STAGE 2: Development Dockerfile - optimized for hot-reloading
-FROM node:20-slim
+# STAGE 2: Build Next.js app
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
-# Install required OS utils
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install runtime dependencies
+RUN apk add --no-cache \
     python3 \
-    build-essential \
+    build-base \
     ffmpeg \
     curl \
     ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    libstdc++ \
+    libgomp
 
 # Extract whisper.cpp binaries from official image
 COPY --from=whisper-builder /whisper-build/build/bin/whisper-cli /usr/local/bin/whisper-cli
 COPY --from=whisper-builder /whisper-build/build/src/libwhisper.so* /usr/local/lib/
 COPY --from=whisper-builder /whisper-build/build/ggml/src/libggml*.so* /usr/local/lib/
 
-# Ensure loader can find libs
-RUN ldconfig
+# Set library path and permissions
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 RUN chmod +x /usr/local/bin/whisper-cli
 
 # Download whisper model if it doesn't exist
 RUN mkdir -p /app/models && \
-    if [ ! -f /app/models/ggml-base.bin ]; then \
-        curl -L -o /app/models/ggml-base.bin \
-        https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin; \
+    if [ ! -f /app/models/ggml-small.bin ]; then \
+        curl -L -o /app/models/ggml-small.bin \
+        https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin; \
     fi
+
+
+# Set development environment
+ENV NODE_ENV=development \
+    PORT=3000
 
 # Copy package files for dependency installation
 COPY package.json package-lock.json* ./

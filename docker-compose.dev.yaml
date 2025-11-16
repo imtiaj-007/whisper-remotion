@@ -9,6 +9,8 @@ services:
         environment:
             NODE_ENV: development
             WATCHPACK_POLLING: 'true'
+        env_file:
+            - .env.local
         volumes:
             # Mount source code for hot-reloading
             - .:/app

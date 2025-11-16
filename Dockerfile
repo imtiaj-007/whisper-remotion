@@ -59,8 +59,7 @@ WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV=production \
-    NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3000
+    NEXT_TELEMETRY_DISABLED=1
 
 # Install runtime dependencies
 RUN apk add --no-cache \
@@ -90,7 +89,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
 # Expose port
-EXPOSE 3000
+EXPOSE 10000
 
 # Start application
 CMD ["node", "server.js"]

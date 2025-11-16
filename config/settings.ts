@@ -23,7 +23,7 @@ export const serverSettings: TServerSettings = {
 
 // Client settings - safe for browser
 export const clientSettings: TClientSettings = {
-    API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api',
+    API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || '/api',
 }
 
 // Validate server settings only on server side

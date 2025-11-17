@@ -18,31 +18,34 @@ The application provides a seamless workflow from video upload to caption genera
 ## Tech Stack
 
 ### Frontend
+
 - **Next.js 16** - React framework with App Router
 - **React 19** - UI library
 - **TypeScript** - Type safety
 - **Tailwind CSS 4** - Styling
-- **Radix UI** - Accessible component primitives
+- **ShadCN UI** - Accessible component primitives
 - **Remotion** - Video rendering and caption display
-  - `@remotion/player` - Video player component
-  - `@remotion/captions` - Caption utilities
-  - `@remotion/rounded-text-box` - Styled caption boxes
-  - `@remotion/google-fonts` - Font loading
-- **Sonner** - Toast notifications
+    - `@remotion/player` - Video player component
+    - `@remotion/captions` - Caption utilities
+    - `@remotion/rounded-text-box` - Styled caption boxes
+    - `@remotion/google-fonts` - Font loading
 - **Lucide React** - Icons
 
 ### Backend
+
 - **Next.js API Routes** - Serverless API endpoints
 - **AWS SDK v3** - S3 integration for file storage
 - **Whisper.cpp** - Speech-to-text transcription
 - **FFmpeg** - Video/audio processing
 
 ### Infrastructure
+
 - **Docker** - Containerization
 - **Alpine Linux** - Lightweight base images
 - **AWS S3** - Object storage
 
 ### Development Tools
+
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
 - **TypeScript** - Static type checking
@@ -59,53 +62,60 @@ The application provides a seamless workflow from video upload to caption genera
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd whisper-remotion
-   ```
+
+    ```bash
+    git clone <repository-url>
+    cd whisper-remotion
+    ```
 
 2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+
+    ```bash
+    npm install
+    ```
 
 3. **Set up environment variables**
 
-   Create a `.env.local` file in the root directory:
-   ```env
-   # AWS Configuration
-   AWS_REGION=ap-south-1
-   AWS_ACCESS_KEY_ID=your_access_key_id
-   AWS_SECRET_ACCESS_KEY=your_secret_access_key
-   AWS_BUCKET_NAME=whisper-remotion
+    Create a `.env.local` file in the root directory:
 
-   # API Configuration
-   NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api
+    ```env
+    # AWS Configuration
+    AWS_REGION=ap-south-1
+    AWS_ACCESS_KEY_ID=your_access_key_id
+    AWS_SECRET_ACCESS_KEY=your_secret_access_key
+    AWS_BUCKET_NAME=whisper-remotion
 
-   # Model Configuration
-   MODEL_PATH=/app/models/ggml-base.bin
-   ```
+    # API Configuration
+    NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api
+
+    # Model Configuration
+    MODEL_PATH=/app/models/ggml-base.bin
+    ```
 
 4. **Run the development server**
-   ```bash
-   npm run dev
-   ```
 
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+    ```bash
+    npm run dev
+    ```
+
+    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Docker Setup
 
 **Development Environment:**
+
 ```bash
 docker-compose -f docker-compose.dev.yaml up --build
 ```
 
 **Production Environment:**
+
 ```bash
 docker-compose up --build
 ```
 
 The Docker setup includes:
+
 - Whisper.cpp built from source
 - FFmpeg for audio extraction
 - Pre-configured Whisper model (ggml-base.bin)
@@ -114,14 +124,66 @@ The Docker setup includes:
 ### Environment Variables
 
 #### Required (Server-side)
+
 - `AWS_ACCESS_KEY_ID` - AWS access key
 - `AWS_SECRET_ACCESS_KEY` - AWS secret key
 - `AWS_BUCKET_NAME` - S3 bucket name
 - `AWS_REGION` - AWS region (default: `ap-south-1`)
 
 #### Optional
+
 - `MODEL_PATH` - Path to Whisper model (default: `/app/models/ggml-base.bin`)
 - `NEXT_PUBLIC_API_BASE_URL` - API base URL for client (default: `http://localhost:3000/api`)
+
+## System Design
+
+The system follows a modular, layered architecture optimized for scalable, cloud-native caption generation. Below is an overview of the main components and their interactions:
+
+#### Frontend Layer
+
+- Built with **Next.js App Router** and React, it provides a modern UI and serves API endpoints.
+- Handles all user interactions, video uploads, caption style customization, and playback.
+- Maintains application state (uploaded videos, selected caption style, status) via React Context.
+
+#### Storage Layer
+
+- Uses **AWS S3** as secure cloud storage for raw videos, audio files, and generated caption files (JSON).
+- The frontend acquires secure S3 presigned URLs (upload/download) via API routes.
+
+#### Processing Layer
+
+- **FFmpeg**: Extracts audio from uploaded videos for processing.
+- **Whisper.cpp**: Processes audio on the backend, using OpenAI’s speech-to-text model, supporting multiple languages.
+- **Caption Converter**: Custom module transforms Whisper transcriptions to Remotion-compatible caption format.
+
+#### Rendering Layer
+
+- **Remotion Player**: Advanced video player with live, styled captions. Supports custom styles (standard, karaoke, news ticker) and live preview.
+
+#### Integration
+
+- All layers communicate via serverless Next.js API routes.
+- The architecture supports horizontal scaling (stateless processing; AWS S3 as persistent storage).
+
+#### Architecture Diagram:
+
+![System Architecture](public/system-architecture.png)
+
+#### Sequence Diagram:
+
+![Sequence Diagram](/public/sequence-diagram.png)
+
+---
+
+**Typical Flow:**
+
+1. User uploads a video via frontend; file is sent to S3.
+2. API triggers FFmpeg to extract audio.
+3. Whisper.cpp transcribes audio to a caption JSON.
+4. Caption converter formats captions for Remotion.
+5. Remotion Player in frontend displays captions in real time.
+
+---
 
 ## Project Structure
 
@@ -185,26 +247,30 @@ whisper-remotion/
 ## Features
 
 ### Video Processing
+
 - Secure video upload via AWS S3 presigned URLs
 - Automatic audio extraction from video files
 - Support for multiple video formats (MP4, etc.)
 
 ### Caption Generation
+
 - Automatic speech-to-text using Whisper.cpp
 - Timestamp synchronization
 - Support for multiple languages
 - Configurable model size (base, small, medium, large)
 
 ### Caption Rendering
+
 - Real-time caption preview with Remotion player
 - Multiple caption style presets:
-  - **Bottom Centered** - Standard subtitle style
-  - **Top Bar** - News-style top banner
-  - **Karaoke** - Word-by-word highlighting
+    - **Bottom Centered** - Standard subtitle style
+    - **Top Bar** - News-style top banner
+    - **Karaoke** - Word-by-word highlighting
 - Customizable styling (colors, fonts, positioning)
 - Responsive text fitting and multi-line support
 
 ### User Experience
+
 - Drag-and-drop video upload
 - Real-time processing status
 - Error handling and notifications
@@ -213,37 +279,44 @@ whisper-remotion/
 ## API Endpoints
 
 ### `GET /api/upload-url`
+
 Generate a presigned URL for video upload.
 
 **Response:**
+
 ```json
 {
-  "uploadUrl": "https://...",
-  "fileKey": "uploads/videos/uuid.mp4"
+    "uploadUrl": "https://...",
+    "fileKey": "uploads/videos/uuid.mp4"
 }
 ```
 
 ### `POST /api/video/[file_key]/audio`
+
 Extract audio from uploaded video.
 
 **Response:**
+
 ```json
 {
-  "audioPath": "/tmp/audio-uuid.wav"
+    "audioPath": "/tmp/audio-uuid.wav"
 }
 ```
 
 ### `POST /api/video/[file_key]/transcription`
+
 Generate captions from audio file.
 
 **Request:**
+
 ```json
 {
-  "audioPath": "/tmp/audio-uuid.wav"
+    "audioPath": "/tmp/audio-uuid.wav"
 }
 ```
 
 **Response:**
+
 ```json
 {
   "transcript": { ... },
@@ -252,16 +325,19 @@ Generate captions from audio file.
 ```
 
 ### `GET /api/video/[file_key]/signed-url`
+
 Get presigned URL for video playback.
 
 **Response:**
+
 ```json
 {
-  "url": "https://..."
+    "url": "https://..."
 }
 ```
 
 ### `GET /api/health`
+
 Health check endpoint.
 
 ## Development
@@ -282,6 +358,7 @@ npm run format:fix   # Format code
 ### Code Style
 
 The project uses:
+
 - **ESLint** for linting (Next.js config)
 - **Prettier** for code formatting
 - **TypeScript** strict mode
@@ -293,18 +370,19 @@ Run `npm run lint:fix` and `npm run format:fix` before committing.
 ### Docker Deployment
 
 1. Build the production image:
-   ```bash
-   docker build -t whisper-remotion .
-   ```
+
+    ```bash
+    docker build -t whisper-remotion .
+    ```
 
 2. Run the container:
-   ```bash
-   docker run -p 3000:3000 \
-     -e AWS_ACCESS_KEY_ID=your_key \
-     -e AWS_SECRET_ACCESS_KEY=your_secret \
-     -e AWS_BUCKET_NAME=your_bucket \
-     whisper-remotion
-   ```
+    ```bash
+    docker run -p 3000:3000 \
+      -e AWS_ACCESS_KEY_ID=your_key \
+      -e AWS_SECRET_ACCESS_KEY=your_secret \
+      -e AWS_BUCKET_NAME=your_bucket \
+      whisper-remotion
+    ```
 
 ### Environment Setup
 
@@ -314,52 +392,31 @@ Ensure all required environment variables are set in your deployment environment
 
 The Dockerfile automatically downloads the Whisper model during build. For custom models, mount a volume or modify the `MODEL_PATH` environment variable.
 
-## Troubleshooting
-
-### Common Issues
-
-**Whisper model not found:**
-- Ensure `MODEL_PATH` points to a valid model file
-- Check that the model was downloaded during Docker build
-- Verify file permissions
-
-**AWS S3 errors:**
-- Verify AWS credentials are correct
-- Check bucket permissions and region
-- Ensure bucket exists and is accessible
-
-**FFmpeg errors:**
-- Verify FFmpeg is installed in the container
-- Check video file format compatibility
-- Review file size limits
-
-**Caption rendering issues:**
-- Check browser console for errors
-- Verify Remotion dependencies are installed
-- Ensure video URL is accessible (CORS)
-
 ## Contributing
 
 We welcome contributions! Please follow these guidelines:
 
 1. **Fork the repository** and create a feature branch
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
+
+    ```bash
+    git checkout -b feature/amazing-feature
+    ```
 
 2. **Make your changes** following the code style guidelines
 
 3. **Test your changes** thoroughly
-   ```bash
-   npm run type-check
-   npm run lint:check
-   npm run build
-   ```
+
+    ```bash
+    npm run type-check
+    npm run lint:check
+    npm run build
+    ```
 
 4. **Commit your changes** with clear, descriptive messages
-   ```bash
-   git commit -m "feat: add amazing feature"
-   ```
+
+    ```bash
+    git commit -m "feat: add amazing feature"
+    ```
 
 5. **Push to your fork** and open a Pull Request
 
@@ -392,6 +449,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Support
 
 For issues, questions, or suggestions:
+
 - Open an issue on GitHub
 - Check existing issues and discussions
 - Review the documentation
